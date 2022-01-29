@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux" // used to get the params from the route
+	"github.com/streadway/amqp"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -148,6 +149,7 @@ func insertTodo(todo models.Todo) int64 {
 
 	fmt.Printf("Inserted a single record %v", id)
 
+	enqueue()
 	// return the inserted id
 	return id
 }
@@ -239,4 +241,45 @@ func deleteTodo(id int64) int64 {
 	}
 	fmt.Printf("Total rows/record affected %v", rowsAffected)
 	return rowsAffected
+}
+
+//------------------------- queue producer ----------------
+func enqueue() error {
+	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
+	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
+	if err != nil {
+		panic(err)
+	}
+	defer connectRabbitMQ.Close()
+	channelRabbitMQ, err := connectRabbitMQ.Channel()
+	if err != nil {
+		panic(err)
+	}
+	defer channelRabbitMQ.Close()
+	// Declare queue in every connection. This could be simplified.
+	_, err = channelRabbitMQ.QueueDeclare(
+		"FallbackAPIQueue",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		panic(err)
+	}
+	message := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte("A request has been sent via fallback API"),
+	}
+	if err := channelRabbitMQ.Publish(
+		"",
+		"FallbackAPIQueue",
+		false,
+		false,
+		message,
+	); err != nil {
+		return err
+	}
+	return nil
 }

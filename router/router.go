@@ -13,7 +13,7 @@ func Router() *mux.Router {
 
 	router.HandleFunc("/fallback/todo/{id}", middleware.GetTodo).Methods("GET", "OPTIONS")
 	router.HandleFunc("/fallback/todo", middleware.GetAllTodo).Methods("GET", "OPTIONS")
-	router.HandleFunc("/fallback/newTodo", middleware.CreateTodo).Methods("POST", "OPTIONS")
+	router.HandleFunc("/fallback/todo", middleware.CreateTodo).Methods("POST", "OPTIONS")
 	router.HandleFunc("/fallback/todo/{id}", middleware.UpdateTodo).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/fallback/deleteTodo/{id}", middleware.DeleteTodo).Methods("DELETE", "OPTIONS")
 

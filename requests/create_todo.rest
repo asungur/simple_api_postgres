@@ -1,0 +1,6 @@
+POST http://localhost:3002/fallback/todo
+Content-Type: application/json
+
+{
+  "title": "Testing RabbitMQ7", "done": "false"
+}
